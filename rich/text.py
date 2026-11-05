@@ -20,7 +20,7 @@ from ._loop import loop_last
 from ._pick import pick_bool
 from ._wrap import divide_line
 from .align import AlignMethod
-from .cells import cell_len, set_cell_size
+from .cells import cell_len, get_character_cell_size, set_cell_size
 from .containers import Lines
 from .control import strip_control_codes
 from .emoji import EmojiVariant
@@ -950,7 +950,11 @@ class Text(JupyterMixin):
             character (str, optional): Character to pad with. Defaults to " ".
         """
         self.truncate(width)
-        excess_space = width - cell_len(self.plain)
+        if get_character_cell_size(character) == 0:
+            character = " "
+        excess_space = (width - cell_len(self.plain)) // max(
+            get_character_cell_size(character), 1
+        )
         if excess_space:
             if align == "left":
                 self.pad_right(excess_space, character)
@@ -960,6 +964,8 @@ class Text(JupyterMixin):
                 self.pad_right(excess_space - left, character)
             else:
                 self.pad_left(excess_space, character)
+        if get_character_cell_size(character) == 2:
+            self.align(align, width)
 
     def append(
         self, text: Union["Text", str], style: Optional[Union[str, "Style"]] = None
