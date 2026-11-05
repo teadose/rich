@@ -1127,3 +1127,33 @@ def test_soft_wrap_styled() -> None:
     # Background is reset before \n
     expected = "\x1b[34;47msoft wrap is on\x1b[0m\nNext line\n"
     assert output == expected
+
+
+@pytest.mark.parametrize(
+    ("align", "expected"),
+    [
+        ("left", "x界界 "),
+        ("center", "界x界 "),
+        ("right", " 界界x"),
+    ],
+)
+def test_align_two_cell_fill_character(align, expected):
+    text = Text("x")
+    text.align(align, 6, character="界")
+    assert text.plain == expected
+    assert text.cell_len == 6
+
+
+@pytest.mark.parametrize(
+    ("align", "expected"),
+    [
+        ("left", "x     "),
+        ("center", "  x   "),
+        ("right", "     x"),
+    ],
+)
+def test_align_zero_width_fill_character_falls_back_to_spaces(align, expected):
+    text = Text("x")
+    text.align(align, 6, character="\x01")
+    assert text.plain == expected
+    assert text.cell_len == 6
